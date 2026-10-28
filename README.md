@@ -33,7 +33,7 @@ For an AI agent that performs first-line triage of Cospas-Sarsat alerts (a four-
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-username>/<your-repo>.git
+git clone https://github.com/smruti1979/sar_token_economics.git
 cd <your-repo>
 
 python3 sar_token_economics.py --selftest   # sanity checks on the arithmetic
@@ -76,7 +76,6 @@ To regenerate `expected_output.txt` and confirm that your run matches it:
 
 ```bash
 { python3 sar_token_economics.py --selftest; echo; python3 sar_token_economics.py --verify; } > my_output.txt
-diff my_output.txt expected_output.txt && echo "Identical"
 ```
 
 ## Method in brief
@@ -101,7 +100,7 @@ If you use this code or the paper, please cite it:
 ```
 S. Rout, "Token-Aware Agentic Architecture for Cospas-Sarsat Alert Intelligence:
 Predictable Cost, Protected Safety," white paper, Oct. 2026.
-Code: https://github.com/<your-username>/<your-repo> (release v1.0)
+Code: https://github.com/smruti1979/sar_token_economics (v1.0)
 ```
 
 ## Licence
