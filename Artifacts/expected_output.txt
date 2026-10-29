@@ -1,0 +1,116 @@
+SELF-TEST
+  [PASS] hand-calc premium call = $0.0252
+  [PASS] hand-calc cached premium call = $0.009
+  [PASS] routed: outcome probabilities sum to 1
+  [PASS] premium: outcome probabilities sum to 1
+  [PASS] failure-free baseline has a single outcome
+  [PASS] cache never increases cost
+  [PASS] Monte Carlo within 1% of exact (-0.03%)
+  [PASS] tool layer with 0 rounds reproduces the workflow (cache=False)
+  [PASS] tool layer with 0 rounds reproduces the workflow (cache=True)
+  [PASS] hand-calc premium agent, 1 tool round = $0.1509 (got 0.1509)
+  [PASS] cost rises with every extra tool round
+  [PASS] gateway never costs more than raw results
+  [PASS] tool-layer outcome probabilities sum to 1
+  [PASS] tool-layer Monte Carlo within 1% of exact (-0.02%)
+  [PASS] long-run 4 steps input tokens = 6,900*4 + 500*6 = 30,600
+
+==============================================================================
+        SAR ALERT-INTELLIGENCE AGENT : TOKEN ECONOMICS (reproducible)         
+==============================================================================
+Assumptions: static prompt 6,000 tok | goal 900 tok | 8,000 runs/day | 365 days
+Failed attempts billed: True | escalation output x1.4
+
+[1] THREE ARCHITECTURES (exact expectation over all failure outcomes)
+Architecture                         per run   per 1,000     per day      per year
+A  Premium by default             $  0.11820$    118.20$       946$     345,144
+B  Routed                         $  0.07734$     77.34$       619$     225,836
+C  Routed + cached                $  0.03756$     37.56$       300$     109,679
+
+Routing alone                : 34.6% reduction
+Caching on top of routing    : 51.4% further reduction
+Combined (A -> C)            : 68.2%  = $235,465 per year
+Combined vs fair baseline*   : 69.9%   (*baseline given the same 5% premium-failure rate)
+Failure-free ceiling         : 73.6% (per run $0.03120)
+Escalation tax               : +20.4% over the failure-free pipeline
+Escalation/retry events/run  : 0.40
+Input share of baseline cost : 77.2%
+Tokens/run (C): input 33,521 (of which cached 26,400 = 78.8%), output 2,038
+Source-script convention (failed attempt NOT billed): C = $0.03581/run
+
+[2] MONTE CARLO CROSS-CHECK (200,000 runs, seed 42)
+B mean $0.07732 (error -0.03%) | C mean $0.03755 (error -0.03%) | C P99 $0.06832
+
+[3] TAIL RISK
+Exact P99 per run : A $0.11820 | C $0.06832 (1.82x C mean) | C worst case $0.10098
+A 30x-volatility run costs $3.55; the same run on C costs $1.13
+
+[4] SENSITIVITY - prompt-cache hit rate (share of static prefix served from cache)
+  hit   100% -> $0.03756/run | saving vs A 68.2%
+  hit    90% -> $0.04154/run | saving vs A 64.9%
+  hit    75% -> $0.04751/run | saving vs A 59.8%
+  hit    50% -> $0.05745/run | saving vs A 51.4%
+  hit     0% -> $0.07734/run | saving vs A 34.6%
+
+[5] SENSITIVITY - Tier 1 first-attempt failure probability
+  p =    5% -> $0.03453/run | saving vs A 70.8%
+  p =   15% -> $0.03756/run | saving vs A 68.2%
+  p =   30% -> $0.04212/run | saving vs A 64.4%
+  p =   45% -> $0.04670/run | saving vs A 60.5%
+  p =   60% -> $0.05129/run | saving vs A 56.6%
+  Break-even (routing alone, no cache, vs premium-by-default): Tier 1 failure rate 79.9% (routed cost at 100% failure: $0.13094/run vs A $0.11820)
+
+[6] LONG-RUNNING AGENT (premium model, +500 output tokens per step, compaction every 10 steps)
+Steps   Input tok   Compacted   Cut   Plain $   Cache $  Compact $   Both $
+    4      30,600      30,600    0%     0.122     0.057      0.122    0.057
+   10      91,500      91,500    0%     0.350     0.188      0.350    0.188
+   20     233,000     193,000   17%     0.849     0.525      0.729    0.405
+   40     666,000     396,000   41%     2.298     1.650      1.488    0.840
+  Saving vs plain: 4 steps: cache 53%, compact 0%, both 53% | 10 steps: cache 46%, compact 0%, both 46% | 20 steps: cache 38%, compact 14%, both 52% | 40 steps: cache 28%, compact 35%, both 63%
+  10x the steps (4 -> 40) = 21.8x the input tokens
+
+[7] TOOL LAYER (agentic Step 2: 3 sequential tool rounds, 500-token gateway results, 1200-token tool schemas, ceiling 8 rounds)
+Design                                           per run   per 1,000
+Workflow, premium (A, no tools)               $  0.11820$    118.20
+Workflow, routed + cached (C, no tools)       $  0.03756$     37.56
+A1 Naive premium agent (raw results, no cache)$  0.25950$    259.50
+   + gateway only                             $  0.21450$    214.50
+B1 Routed + gateway, no cache                 $  0.17358$    173.58
+C1 Routed + cached, NO gateway                $  0.10740$    107.40
+C1 Routed + cached + gateway (proposed)       $  0.07208$     72.08
+C1 vs naive premium agent    : 72.2% lower = $547,277 per year ($757,740 -> $210,463)
+  decomposition (in order)   : gateway 17.3%, then routing 19.1%, then caching 58.5% of the remainder
+Gateway alone on design C1   : 32.9% lower than raw results
+Tool tax vs workflow C       : +91.9% (+$34.51 per 1,000)
+C1 vs premium workflow A     : 39.0% lower; C1 stays below A up to 5 tool rounds
+Parallel tool calls (1 round x 3 calls): $0.05505/run (23.6% below sequential)
+Tail: C1 P99 $0.10887 (1.51x mean) | at the 8-round ceiling $0.16497 (2.29x) | 30-round runaway: $2.68 naive (37.1x), $1.11 with gateway
+Tokens/run (C1): input 64,385 (cached 49,260 = 76.5%), output 2,338
+Monte Carlo check (C1)       : mean $0.07206 (error -0.02%)
+  Tool rounds -> $/run: 0: A1 0.122 / C1n 0.038 / C1 0.038 | 1: A1 0.163 / C1n 0.056 / C1 0.048 | 3: A1 0.260 / C1n 0.107 / C1 0.072 | 5: A1 0.375 / C1n 0.178 / C1 0.104 | 8: A1 0.585 / C1n 0.319 / C1 0.165 | 10: A1 0.749 / C1n 0.437 / C1 0.215
+  Result size (tokens) -> C1 $/run: 250: 0.0675 | 500: 0.0721 | 1000: 0.0813 | 1500: 0.0905 | 3000: 0.1182
+  Cache share -> C1 $/run: 100%: 0.0721 | 75%: 0.0975 | 50%: 0.1228 | 0%: 0.1736
+==============================================================================
+
+Checking computed values against the figures printed in the white paper:
+  [PASS] A per run                      paper        0.11820  computed        0.11820
+  [PASS] B per run                      paper        0.07734  computed        0.07734
+  [PASS] C per run                      paper        0.03756  computed        0.03756
+  [PASS] Annual A                       paper  345,144.00000  computed  345,144.00000
+  [PASS] Annual C                       paper  109,678.70400  computed  109,678.70400
+  [PASS] Annual saving                  paper  235,465.29600  computed  235,465.29600
+  [PASS] Combined saving %              paper       68.22234  computed       68.22234
+  [PASS] Routing-alone %                paper       34.56751  computed       34.56751
+  [PASS] Cache-on-routing %             paper       51.43442  computed       51.43442
+  [PASS] Escalation tax %               paper       20.38846  computed       20.38846
+  [PASS] Break-even Tier 1 failure %    paper       79.86808  computed       79.86808
+  [PASS] Agentic A1 per run             paper        0.25950  computed        0.25950
+  [PASS] Agentic C1 per run             paper        0.07208  computed        0.07208
+  [PASS] Agentic annual A1              paper  757,740.00000  computed  757,740.00000
+  [PASS] Agentic annual C1              paper  210,462.50400  computed  210,462.50400
+  [PASS] Agentic annual saving          paper  547,277.49600  computed  547,277.49600
+  [PASS] Agentic saving C1 vs A1 %      paper       72.22497  computed       72.22497
+  [PASS] Gateway saving on C1 %         paper       32.89069  computed       32.89069
+  [PASS] Tool tax %                     paper       91.89004  computed       91.89004
+  [PASS] Parallel-call saving %         paper       23.62500  computed       23.62500
+  [PASS] Rounds C1 stays below A        paper        5.00000  computed        5.00000

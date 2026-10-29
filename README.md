@@ -1,9 +1,9 @@
 # Token Economics for a Cospas-Sarsat Alert Intelligence Agent
 
-Reproducible cost model behind the white paper
+Reproducible cost model behind the POC
 **"Token-Aware Agentic Architecture for Cospas-Sarsat Alert Intelligence: Predictable Cost, Protected Safety"** (Smruti Rout, October 2026).
 
-Every cost figure in the paper is produced by one file, `sar_token_economics.py`. It needs **Python 3.9 or later and nothing else**: no third-party packages.
+Every cost figure in the POC is produced by one file, `sar_token_economics.py`. It needs **Python 3.9 or later and nothing else**: no third-party packages.
 
 > **Independent analysis.** This repository is not an official Cospas-Sarsat publication. The architecture it models is a proposal, not a programme specification.
 
@@ -93,15 +93,6 @@ To regenerate `expected_output.txt` and confirm that your run matches it:
 - **Not modelled:** cache-write fees, cache expiry between calls, Tier 3 reasoning-model costs, latency, and integration, hosting and engineering effort.
 - Results are modelled outcomes, not guarantees.
 
-## Citation
-
-If you use this code or the paper, please cite it:
-
-```
-S. Rout, "Token-Aware Agentic Architecture for Cospas-Sarsat Alert Intelligence:
-Predictable Cost, Protected Safety," white paper, Oct. 2026.
-Code: https://github.com/smruti1979/sar_token_economics (v1.0)
-```
 
 ## Licence
 
